@@ -1,0 +1,61 @@
+#!/usr/bin/env node
+'use strict'
+// vim: set ft=javascript:ts=2:sw=2
+
+const cptmpl = require('../')
+const args = require('minimist')(process.argv.slice(2), {
+  string: ['src', 'dest', 'data'],
+  boolean: ['version', 'help'],
+  alias: {
+    src: 's',
+    dest: 'd',
+    data: 'D',
+    version: 'V'
+  }
+})
+
+if (args.help || args._[0] === 'help') {
+  console.log(`
+    Usage:
+			cptmpl --src="<Source Template>" --dest="<Destination File>" --data="<Data As JSON>" [options]
+			cptmpl <Source Template> <Destination File> <Data As JSON> [options]
+
+    Options:
+    
+      -s, --src                   the source template
+      -d, --dest                  the destination file
+      -D, --data                  a JSON string of data for the template
+      -f, --force                 force overwite file
+      --mode                      the file permissions mode
+      -V, --version               output the version number
+      -V, --version               output the version number
+      --help                      display this help
+
+    Template Format:
+
+      See (EJS Documentation)[https://www.npmjs.com/package/ejs].
+
+      <% if (user) { %>
+        <h2><%= user.name %></h2>
+      <% } %>
+  `)
+  process.exit(0)
+}
+
+if (args.version || args._[0] === 'version') {
+  console.log('v' + require('../package.json').version)
+  process.exit(0)
+}
+
+let data
+try {
+  data = JSON.parse(args.data)
+} catch (e) {
+  console.error(e)
+  process.exit(1)
+}
+
+cptmpl(args.src || args._[0], args.dest || args._[1], data, {
+  mode: args.mode,
+  force: args.force || false
+})
