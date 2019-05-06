@@ -21,6 +21,9 @@ describe('cptmpl', function () {
   })
 
   it('should copy a directory of templates recursivly', async function () {
+    // Create empty dir since git wont let us check it in
+    await fs.ensureDir(path.join(FIX_DIR, 'dir', 'empty'))
+
     await cptmpl.recursive(path.join(FIX_DIR, 'dir'), TMP_DIR, {
       name: 'world'
     })
