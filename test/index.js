@@ -16,7 +16,33 @@ describe('cptmpl', function () {
     })
 
     // Ensure the right files are created
-    assert(fs.pathExists(path.join(TMP_DIR, 'bar.md')))
-    assert(fs.readFileSync(path.join(TMP_DIR, 'bar.md')).includes('Hello world!'))
+    assert(await fs.pathExists(path.join(TMP_DIR, 'bar.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'bar.md')).includes('Hello world!'))
+  })
+
+  it('should copy a directory of templates recursivly', async function () {
+    await cptmpl.recursive(path.join(FIX_DIR, 'dir'), TMP_DIR, {
+      name: 'world'
+    })
+
+    // Ensure the right files are created
+    assert(await fs.pathExists(path.join(TMP_DIR, 'empty')))
+
+    assert(await fs.pathExists(path.join(TMP_DIR, 'bin/foo')))
+
+    assert(await fs.pathExists(path.join(TMP_DIR, 'foo.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'foo.md')).includes('Hello world!'))
+
+    assert(await fs.pathExists(path.join(TMP_DIR, 'bar/bar.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'bar/bar.md')).includes('Hello world!'))
+  })
+
+  it('should refuse to copy recursivly on a file', function (done) {
+    cptmpl.recursive(path.join(FIX_DIR, 'foo.md'), TMP_DIR, {
+      name: 'world'
+    }).catch((err) => {
+      assert.strictEqual(err.code, 'ENOTDIR')
+      done()
+    })
   })
 })

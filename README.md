@@ -1,4 +1,4 @@
-# Copy and process a template file
+# Copy and process a template file or files
 
 [![NPM Version](https://img.shields.io/npm/v/cptmpl//npmjs.org/package/cptmpl)
 [![NPM Downloads](https://img.shields.io/npm/dm/cptmpl.svg)](https://npmjs.org/package/cptmpl)
@@ -11,7 +11,7 @@ It has a programmatic and cli interface for simple usage whatever your context.
 ## Usage
 
 ```
-$ npm i --save [--global] cptmpl
+$ npm i --save cptmpl
 $ cptmpl --help
 
     Usage:
@@ -23,9 +23,9 @@ $ cptmpl --help
       -s, --src                   the source template
       -d, --dest                  the destination file
       -D, --data                  a JSON string of data for the template
+      -r, --recursive             copy a directory of templates recursivly
       -f, --force                 force overwite file
       --mode                      the file permissions mode
-      -V, --version               output the version number
       -V, --version               output the version number
       --help                      display this help
 
@@ -49,6 +49,11 @@ const cptmpl = require('cptmpl')
     force: false,
     mode: undefined,
     handleConflicts: <Default Handle Conflicts Function>
+  })
+
+  // Recursivly copy src directory to dest
+  await cptmpl.recursive('src', 'dest', {
+    name: 'world'
   })
 })()
 ```

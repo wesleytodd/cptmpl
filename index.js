@@ -5,8 +5,9 @@ const ejs = require('ejs')
 const inquirer = require('inquirer')
 const diff = require('diff')
 const chalk = require('chalk')
+const readdir = require('recursive-readdir')
 
-module.exports = async function cptmpl (_src, _dest, data = {}, opts = {}) {
+const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, opts = {}) {
   const { mode, force } = opts
   const handleConflicts = opts.handleConflicts || defaultHandleConflicts
 
@@ -26,6 +27,31 @@ module.exports = async function cptmpl (_src, _dest, data = {}, opts = {}) {
 
   await fs.ensureDir(path.dirname(dest))
   await fs.writeFile(dest, rendered, { mode })
+}
+
+module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts = {}) {
+  const filesWithStats = {}
+  await readdir(_src, [(file, stats) => {
+    filesWithStats[file] = stats
+  }])
+
+  for (let file of Object.keys(filesWithStats)) {
+    const dest = path.join(_dest, path.relative(_src, file))
+
+    // Make directories
+    const stats = filesWithStats[file]
+    if (stats.isDirectory()) {
+      await fs.ensureDir(dest, opts.mode || getFileMode(stats.mode))
+      continue
+    }
+
+    // Copy template files
+    await cptmpl(file, path.join(_dest, path.relative(_src, file)), data, {
+      mode: opts.mode || getFileMode(stats.mode),
+      force: opts.force,
+      handleConflicts: opts.handleConflicts
+    })
+  }
 }
 
 // Detect file conflict
@@ -93,4 +119,8 @@ function displayDiff (existing, contents) {
       process.stderr.write(color(prefix + part.value))
     })
   process.stderr.write('\n')
+}
+
+function getFileMode (mode) {
+  return '0' + (mode & parseInt('777', 8)).toString(8)
 }
