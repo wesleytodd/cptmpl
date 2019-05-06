@@ -12,7 +12,13 @@ const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, o
   const handleConflicts = opts.handleConflicts || defaultHandleConflicts
 
   const src = path.resolve(_src)
-  const dest = path.resolve(_dest)
+
+  // Process dest filename
+  let dest = _dest
+  if (typeof opts.processTemplateFilenames === 'function') {
+    dest = opts.processTemplateFilenames(dest, data)
+  }
+  dest = path.resolve(dest)
 
   const content = await fs.readFile(src, { encoding: 'utf8' })
   const rendered = ejs.render(content, data)
@@ -36,7 +42,11 @@ module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts 
   }])
 
   for (let file of Object.keys(filesWithStats)) {
-    const dest = path.join(_dest, path.relative(_src, file))
+    // Process dest filename
+    let dest = path.join(_dest, path.relative(_src, file))
+    if (typeof opts.processTemplateFilenames === 'function') {
+      dest = opts.processTemplateFilenames(dest, data)
+    }
 
     // Make directories
     const stats = filesWithStats[file]
@@ -46,7 +56,7 @@ module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts 
     }
 
     // Copy template files
-    await cptmpl(file, path.join(_dest, path.relative(_src, file)), data, {
+    await cptmpl(file, dest, data, {
       mode: opts.mode || getFileMode(stats.mode),
       force: opts.force,
       handleConflicts: opts.handleConflicts

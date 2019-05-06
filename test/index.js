@@ -48,4 +48,29 @@ describe('cptmpl', function () {
       done()
     })
   })
+
+  it('should allow modifying the destination filename', async function () {
+    await cptmpl(path.join(FIX_DIR, 'foo.md'), path.join(TMP_DIR, 'bar.md'), {
+      name: 'other'
+    }, {
+      processTemplateFilenames: (dest, data) => {
+        return path.join(TMP_DIR, 'other.md')
+      }
+    })
+    assert(await fs.pathExists(path.join(TMP_DIR, 'other.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'other.md')).includes('Hello other!'))
+
+    await cptmpl.recursive(path.join(FIX_DIR, 'dir'), TMP_DIR, {
+      name: 'otherdir'
+    }, {
+      processTemplateFilenames: (dest, data) => {
+        if (dest === path.join(TMP_DIR, 'bar', 'bar.md')) {
+          return path.join(TMP_DIR, 'bar', data.name + '.md')
+        }
+        return dest
+      }
+    })
+    assert(await fs.pathExists(path.join(TMP_DIR, 'bar', 'otherdir.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'bar', 'otherdir.md')).includes('Hello otherdir!'))
+  })
 })

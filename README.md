@@ -49,6 +49,11 @@ const cptmpl = require('cptmpl')
     force: false,
     mode: undefined,
     handleConflicts: <Default Handle Conflicts Function>
+    processTemplateFilenames: (dest, data) => {
+      // Process the filename however you need and
+      // return the modified path
+      return dest
+    }
   })
 
   // Recursivly copy src directory to dest
