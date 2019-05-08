@@ -21,7 +21,9 @@ const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, o
   dest = path.resolve(dest)
 
   const content = await fs.readFile(src, { encoding: 'utf8' })
-  const rendered = ejs.render(content, data)
+  const rendered = ejs.render(content, data, {
+    filename: src
+  })
 
   // If we are not forcing, check for conflicts
   if (force !== true) {

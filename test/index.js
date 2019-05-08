@@ -73,4 +73,12 @@ describe('cptmpl', function () {
     assert(await fs.pathExists(path.join(TMP_DIR, 'bar', 'otherdir.md')))
     assert(await fs.readFileSync(path.join(TMP_DIR, 'bar', 'otherdir.md')).includes('Hello otherdir!'))
   })
+
+  it('should support ejs includes', async function () {
+    await cptmpl(path.join(FIX_DIR, 'include.md'), path.join(TMP_DIR, 'include.md'), {
+      name: 'include'
+    })
+    assert(await fs.pathExists(path.join(TMP_DIR, 'include.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'include.md')).includes('Hello include!'))
+  })
 })
