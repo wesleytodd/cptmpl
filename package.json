@@ -1,6 +1,6 @@
 {
   "name": "cptmpl",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Copy and process a template file",
   "author": "Wes Todd <wes@wesleytodd.com>",
   "bin": {
