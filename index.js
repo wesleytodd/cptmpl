@@ -43,7 +43,7 @@ module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts 
     filesWithStats[file] = stats
   }])
 
-  for (let file of Object.keys(filesWithStats)) {
+  for (const file of Object.keys(filesWithStats)) {
     // Process dest filename
     let dest = path.join(_dest, path.relative(_src, file))
     if (typeof opts.processTemplateFilenames === 'function') {
