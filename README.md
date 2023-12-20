@@ -2,7 +2,7 @@
 
 [![NPM Version](https://img.shields.io/npm/v/cptmpl//npmjs.org/package/cptmpl)
 [![NPM Downloads](https://img.shields.io/npm/dm/cptmpl.svg)](https://npmjs.org/package/cptmpl)
-[![Build Status](https://travis-ci.org/wesleytodd/cptmpl.svg?branch=master)](https://travis-ci.org/wesleytodd/cptmpl)
+[![test](https://github.com/wesleytodd/cptmpl/workflows/Test/badge.svg)](https://github.com/wesleytodd/cptmpl/actions?query=workflow%3ATest)
 [![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg)](https://github.com/standard/standard)
 
 This small utility helps manage copying [EJS template](https://www.npmjs.com/package/ejs) files.
