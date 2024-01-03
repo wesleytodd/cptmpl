@@ -7,9 +7,11 @@ const diff = require('diff')
 const chalk = require('chalk')
 const readdir = require('recursive-readdir')
 
-const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, opts = {}) {
+const cptmpl = async function cptmpl (_src, _dest, data = {}, opts = {}) {
   const { mode, force } = opts
   const handleConflicts = opts.handleConflicts || defaultHandleConflicts
+  const promptModule = opts.promptModule || ((opts) => inquirer.prompt(opts))
+  const displayDiff = opts.displayDiff || defaultDisplayDiff
 
   const src = path.resolve(_src)
 
@@ -27,7 +29,7 @@ const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, o
 
   // If we are not forcing, check for conflicts
   if (force !== true) {
-    const shouldContinue = await handleConflicts(dest, rendered)
+    const shouldContinue = await handleConflicts(dest, rendered, { promptModule, displayDiff })
     if (!shouldContinue) {
       return
     }
@@ -37,7 +39,7 @@ const cptmpl = module.exports = async function cptmpl (_src, _dest, data = {}, o
   await fs.writeFile(dest, rendered, { mode })
 }
 
-module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts = {}) {
+async function cptmplr (_src, _dest, data = {}, opts = {}) {
   const filesWithStats = {}
   await readdir(_src, [(file, stats) => {
     filesWithStats[file] = stats
@@ -61,13 +63,15 @@ module.exports.recursive = async function cptmplr (_src, _dest, data = {}, opts 
     await cptmpl(file, dest, data, {
       mode: opts.mode || getFileMode(stats.mode),
       force: opts.force,
-      handleConflicts: opts.handleConflicts
+      handleConflicts: opts.handleConflicts,
+      promptModule: opts.promptModule,
+      displayDiff: opts.displayDiff
     })
   }
 }
 
 // Detect file conflict
-async function defaultHandleConflicts (dest, contents) {
+async function defaultHandleConflicts (dest, contents, opts) {
   if (!await fs.exists(dest)) return true
   if ((await fs.stat(dest)).isDirectory()) return true
 
@@ -82,11 +86,12 @@ async function defaultHandleConflicts (dest, contents) {
   }
 
   // How to resolve?
-  return promptConflict(dest, existing, contents)
+  return promptConflict(dest, existing, contents, opts)
 }
 
-async function promptConflict (dest, existing, contents) {
-  const { whatToDo } = await inquirer.prompt({
+async function promptConflict (dest, existing, contents, opts = {}) {
+  const { promptModule, displayDiff } = opts
+  const { whatToDo } = await promptModule({
     type: 'expand',
     name: 'whatToDo',
     message: `Conflict in ${path.basename(dest)}, overwrite?`,
@@ -109,11 +114,11 @@ async function promptConflict (dest, existing, contents) {
       return false
     case 'Diff':
       displayDiff(existing, contents)
-      return promptConflict(dest, existing, contents)
+      return promptConflict(dest, existing, contents, opts)
   }
 }
 
-function displayDiff (existing, contents) {
+function defaultDisplayDiff (existing, contents) {
   process.stderr.write('\n')
   diff.diffLines(existing.toString('utf8'), contents.toString('utf8'))
     .forEach((part) => {
@@ -136,3 +141,8 @@ function displayDiff (existing, contents) {
 function getFileMode (mode) {
   return '0' + (mode & parseInt('777', 8)).toString(8)
 }
+
+module.exports = cptmpl
+module.exports.recursive = cptmplr
+module.exports.defaultHandleConflicts = defaultHandleConflicts
+module.exports.defaultDisplayDiff = defaultDisplayDiff
