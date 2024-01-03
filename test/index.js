@@ -20,7 +20,7 @@ describe('cptmpl', function () {
     assert(await fs.readFileSync(path.join(TMP_DIR, 'bar.md')).includes('Hello world!'))
   })
 
-  it('should copy a directory of templates recursivly', async function () {
+  it('should copy a directory of templates recursively', async function () {
     // Create empty dir since git wont let us check it in
     await fs.ensureDir(path.join(FIX_DIR, 'dir', 'empty'))
 
@@ -80,5 +80,35 @@ describe('cptmpl', function () {
     })
     assert(await fs.pathExists(path.join(TMP_DIR, 'include.md')))
     assert(await fs.readFileSync(path.join(TMP_DIR, 'include.md')).includes('Hello include!'))
+  })
+
+  it('should support overrides for prompt and diff', async function () {
+    let called = 0
+    await cptmpl(path.join(FIX_DIR, 'foo.md'), path.join(TMP_DIR, 'foo.md'), {
+      name: 'foo'
+    }, {
+      promptModule: () => {
+        throw new Error('should not have been called')
+      }
+    })
+    await cptmpl(path.join(FIX_DIR, 'foo.md'), path.join(TMP_DIR, 'foo.md'), {
+      name: 'bar'
+    }, {
+      promptModule: (prompts) => {
+        called++
+        assert.strictEqual(prompts.name, 'whatToDo')
+        return (called === 1)
+          ? { whatToDo: 'Diff' }
+          : { whatToDo: 'Yes' }
+      },
+      displayDiff: (existing, content) => {
+        called++
+        assert(existing.includes('foo'))
+        assert(content.includes('bar'))
+      }
+    })
+    assert.strictEqual(called, 3)
+    assert(await fs.pathExists(path.join(TMP_DIR, 'foo.md')))
+    assert(await fs.readFileSync(path.join(TMP_DIR, 'foo.md')).includes('Hello bar!'))
   })
 })
